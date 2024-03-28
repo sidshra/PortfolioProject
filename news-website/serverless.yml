@@ -8,32 +8,46 @@ provider:
 
   region: us-east-1
 
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - s3:GetObject
-        - s3:PutObject
-      Resource:
-        - "arn:aws:s3:::${self:provider.environment.S3_BUCKET_NAME1}/uploads/*"
-    - Effect: Allow
-      Action:
-        - dynamodb:PutItem
-        - dynamodb:GetItem
-        - dynamodb:Query
-      Resource: 
-        - "arn:aws:dynamodb:*:*:table/EnDyDBTable"
+  iam:
+    role:
+      statements:
+        # - Effect: Allow
+        #   Action:
+        #     - s3:GetObject
+        #   Resource:
+        #     - "arn:aws:s3:::${self:provider.environment.S3_BUCKET_NAME1}/uploads/*"
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:DeleteItem
+          Resource: 
+            - "arn:aws:dynamodb:*:*:table/EnDyDBTable"
     
-  environment:
-    S3_BUCKET_NAME1:  'en-seidhi-thaal'
+  #environment:
+  #  S3_BUCKET_NAME1:  'en-seidhi-thaal'
 
 
 
 functions:
-  hello:
-    handler: handler.hello
-    name: hello
+  news_crawler:
+    handler: news_crawler.handler
+    name: news_crawler
     events:
-      #- schedule: rate(24 hours)
+      - schedule: cron(10 18 * * ? *)
+      #cron(10 18 * * ? *)
+      #rate(50 minutes)
+
+  get_item:
+    handler: get_item.handler
+    events:
+      - http: 
+          method: GET 
+          path: get_item    
+
+
+
+      
 
 resources:
   Resources:
@@ -42,13 +56,13 @@ resources:
       Properties:
         TableName: EnDyDBTable
         AttributeDefinitions:
-          - AttributeName: timestamp
+          - AttributeName: date
             AttributeType: S  
           - AttributeName: section
             AttributeType: S
               
         KeySchema:
-          - AttributeName: timestamp
+          - AttributeName: date
             KeyType: HASH
           - AttributeName: section
             KeyType: RANGE
