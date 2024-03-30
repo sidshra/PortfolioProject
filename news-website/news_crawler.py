@@ -50,37 +50,15 @@ def handler(event, context):
 
         page_content = web_scrape("https://www.foxnews.com/")
         my_date = str(datetime.datetime.now().date())
+        
         item = {"date": my_date, "section": "Home", "content": page_content}
+        response = {
+            "Payload" : item
+        }
+          
 
-        # create_item(table,item)
-
-        # get_item(table,my_date)
-        # delete_item(table,my_date)
-
-        # response = table.update_item(Key={"date": my_date, "section": "Home"},
-        #                              UpdateExpression=page_content,
-        #                              ExpressionAttributeValues="Test Test",
-        #                              ReturnValues="UPDATED_NEW"
-        #                              )
-        # print(response.get('Attributes'))
-
-        eventbridge = boto3.client("events")
-
-        detail = {"status": "SUCCEEDED"}
-
-        detail["item"] = item
-
-        response = eventbridge.put_events(
-            Entries=[
-                {
-                    "Source": "custom.create-item",
-                    "DetailType": "NewsCreate",
-                    "Detail": json.dumps(detail),
-                   # "EventBusName": "create-item-bus",
-                }
-            ]
-        )
-        print(f"Resize result to EventBridge: {response}")
+  
+       
 
         return response
 

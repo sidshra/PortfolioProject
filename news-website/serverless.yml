@@ -18,9 +18,8 @@ provider:
         #     - "arn:aws:s3:::${self:provider.environment.S3_BUCKET_NAME1}/uploads/*"
         - Effect: Allow
           Action:
-            - events:PutEvents
             - states:StartExecution
-            - lamdba:InvokeFunction
+            - lambda:InvokeFunction
           Resource:
             - "*"  
         - Effect: Allow
@@ -31,12 +30,7 @@ provider:
           Resource: 
             - "arn:aws:dynamodb:*:*:table/EnDyDBTable"
 
-        - Effect: Allow
-          Action:
-            - states:StartExecution
-          Resource: 
-            - "*"  
-    
+ 
   #environment:
   #  S3_BUCKET_NAME1:  'en-seidhi-thaal'
 
@@ -47,7 +41,7 @@ functions:
     handler: news_crawler.handler
     name: news_crawler
     events:
-      - schedule: rate(39 minutes)
+      - schedule: rate(179 minutes)
       #cron(10 18 * * ? *)
       #rate(50 minutes)
 
@@ -71,30 +65,14 @@ stepFunctions:
           news_crawler:
             Type: Task
             Resource: arn:aws:lambda:us-east-1:339712883099:function:news_crawler
-            Next: PutEvent
-
-          PutEvent:
-            Type: Task
-            Resource: arn:aws:states:::events:putEvents
-            Parameters:
-              Entries:
-                - Source:  custom.create-item
-                  DetailType: NewsCreate
-            Next: createStateMachine  
-
-    createStateMachine:
-      name: createStateMachine
-      definition:
-        StartAt: create-item
-        States:
-          create-item:
+            Next: create_item
+         
+          create_item:
             Type: Task
             Resource: arn:aws:lambda:us-east-1:339712883099:function:news-website-dev-create_item        
-            End: true        
-        
-
- 
-
+            InputPath: $.Payload
+            End: true 
+         
 resources:
   Resources:
     # EventBridgeRule:
@@ -102,7 +80,7 @@ resources:
     #   Properties:
     #     ScheduledExpression: "rate(17 minutes)"
     #     State: ENABLED
-    #     Targets:
+    #     Targets
     #       Arn: arn:aws:states:us-east-1:339712883099:stateMachine:crawlStateMachine
     #       Id: crawlStateMachineTarget
 
