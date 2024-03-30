@@ -4,8 +4,8 @@ frameworkVersion: '3'
 
 provider:
   name: aws
-  runtime: python3.11
-
+  runtime: python3.9
+  lambdaHashingVersion: 20201221
   region: us-east-1
 
   iam:
@@ -18,11 +18,24 @@ provider:
         #     - "arn:aws:s3:::${self:provider.environment.S3_BUCKET_NAME1}/uploads/*"
         - Effect: Allow
           Action:
+            - events:PutEvents
+            - states:StartExecution
+            - lamdba:InvokeFunction
+          Resource:
+            - "*"  
+        - Effect: Allow
+          Action:
             - dynamodb:PutItem
             - dynamodb:GetItem
             - dynamodb:DeleteItem
           Resource: 
             - "arn:aws:dynamodb:*:*:table/EnDyDBTable"
+
+        - Effect: Allow
+          Action:
+            - states:StartExecution
+          Resource: 
+            - "*"  
     
   #environment:
   #  S3_BUCKET_NAME1:  'en-seidhi-thaal'
@@ -34,7 +47,7 @@ functions:
     handler: news_crawler.handler
     name: news_crawler
     events:
-      - schedule: cron(10 18 * * ? *)
+      - schedule: rate(39 minutes)
       #cron(10 18 * * ? *)
       #rate(50 minutes)
 
@@ -43,14 +56,59 @@ functions:
     events:
       - http: 
           method: GET 
-          path: get_item    
+          path: get_item  
 
+  create_item:
+    handler: create_item.handler
 
+stepFunctions:
+  stateMachines:
+    crawlStateMachine:
+      name: crawlStateMachine
+      definition:
+        StartAt: news_crawler
+        States:
+          news_crawler:
+            Type: Task
+            Resource: arn:aws:lambda:us-east-1:339712883099:function:news_crawler
+            Next: PutEvent
 
-      
+          PutEvent:
+            Type: Task
+            Resource: arn:aws:states:::events:putEvents
+            Parameters:
+              Entries:
+                - Source:  custom.create-item
+                  DetailType: NewsCreate
+            Next: createStateMachine  
+
+    createStateMachine:
+      name: createStateMachine
+      definition:
+        StartAt: create-item
+        States:
+          create-item:
+            Type: Task
+            Resource: arn:aws:lambda:us-east-1:339712883099:function:news-website-dev-create_item        
+            End: true        
+        
+
+ 
 
 resources:
   Resources:
+    # EventBridgeRule:
+    #   Type: AWS::Events::Rule
+    #   Properties:
+    #     ScheduledExpression: "rate(17 minutes)"
+    #     State: ENABLED
+    #     Targets:
+    #       Arn: arn:aws:states:us-east-1:339712883099:stateMachine:crawlStateMachine
+    #       Id: crawlStateMachineTarget
+
+          
+
+
     EnDyDBTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -73,7 +131,8 @@ resources:
 
 plugins:
   - serverless-python-requirements
-
+  
+  - serverless-step-functions
 custom:
   pythonRequirements:
     dockerizePip: true  

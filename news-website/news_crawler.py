@@ -26,6 +26,7 @@ def web_scrape(site_url):
         # Find the closest parent element with class 'title' containing the headline
         parent_title = img.find_parent(class_="article")
         headline = parent_title.get_text() if parent_title else "No headline available"
+        headline = headline.replace("\n", "")
         parent_link = img.find_parent("a")
         link_href = (
             parent_link["href"]
@@ -38,23 +39,23 @@ def web_scrape(site_url):
             break
     print(image_data)
     json_image_data = json.dumps(image_data)
-    
+
     return json_image_data
 
 def handler(event, context):
     try:
-        
+
         dynamodb = boto3.resource("dynamodb")
         table = dynamodb.Table("EnDyDBTable")
 
         page_content = web_scrape("https://www.foxnews.com/")
         my_date = str(datetime.datetime.now().date())
         item = {"date": my_date, "section": "Home", "content": page_content}
-        
-        #create_item(table,item)
-        
-        get_item(table,my_date)
-        #delete_item(table,my_date)
+
+        # create_item(table,item)
+
+        # get_item(table,my_date)
+        # delete_item(table,my_date)
 
         # response = table.update_item(Key={"date": my_date, "section": "Home"},
         #                              UpdateExpression=page_content,
@@ -63,7 +64,25 @@ def handler(event, context):
         #                              )
         # print(response.get('Attributes'))
 
-        
+        eventbridge = boto3.client("events")
+
+        detail = {"status": "SUCCEEDED"}
+
+        detail["item"] = item
+
+        response = eventbridge.put_events(
+            Entries=[
+                {
+                    "Source": "custom.create-item",
+                    "DetailType": "NewsCreate",
+                    "Detail": json.dumps(detail),
+                   # "EventBusName": "create-item-bus",
+                }
+            ]
+        )
+        print(f"Resize result to EventBridge: {response}")
+
+        return response
 
     except Exception as e:
 

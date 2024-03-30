@@ -6,6 +6,8 @@ def handler(event, context):
 
     table = dynamodb.Table("EnDyDBTable")
     my_date = str(datetime.datetime.now().date())
+    print(my_date)
     response = table.get_item(Key={"date": my_date, "section": "Home"})
+    print(response)
     print(f" The item in API Gateway : {response.get('Item')}")
-    return response.get("Item")
+    return response

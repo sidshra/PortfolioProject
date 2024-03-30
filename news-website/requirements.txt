@@ -1,0 +1,4 @@
+boto3 
+beautifulsoup4
+urllib3>=1.25.8,<2.0.0
+requests==2.31.0
