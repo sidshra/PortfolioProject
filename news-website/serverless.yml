@@ -19,7 +19,7 @@ provider:
         - Effect: Allow
           Action:
             - states:StartExecution
-            - lambda:InvokeFunction
+            #- lambda:InvokeFunction
           Resource:
             - "*"  
         - Effect: Allow
@@ -40,20 +40,24 @@ functions:
   news_crawler:
     handler: news_crawler.handler
     name: news_crawler
-    events:
-      - schedule: rate(179 minutes)
-      #cron(10 18 * * ? *)
-      #rate(50 minutes)
+    timeout: 30
+    # events:
+    #   - schedule: rate(99 minutes)
+    #   #cron(10 18 * * ? *)
+    #   #rate(50 minutes)
 
   get_item:
     handler: get_item.handler
+    name: get_item
     events:
       - http: 
           method: GET 
           path: get_item  
 
   create_item:
+    name: create_item
     handler: create_item.handler
+    timeout: 30
 
 stepFunctions:
   stateMachines:
@@ -66,27 +70,26 @@ stepFunctions:
             Type: Task
             Resource: arn:aws:lambda:us-east-1:339712883099:function:news_crawler
             Next: create_item
-         
+   
           create_item:
             Type: Task
-            Resource: arn:aws:lambda:us-east-1:339712883099:function:news-website-dev-create_item        
-            InputPath: $.Payload
+            Resource: arn:aws:lambda:us-east-1:339712883099:function:create_item        
             End: true 
          
 resources:
   Resources:
-    # EventBridgeRule:
-    #   Type: AWS::Events::Rule
-    #   Properties:
-    #     ScheduledExpression: "rate(17 minutes)"
-    #     State: ENABLED
-    #     Targets
-    #       Arn: arn:aws:states:us-east-1:339712883099:stateMachine:crawlStateMachine
-    #       Id: crawlStateMachineTarget
-
-          
-
-
+    MyStepFuncSchedRule:
+      Type: AWS::Scheduler::Schedule
+      Properties:
+        ScheduleExpression: cron(0 18 * * ? *)
+        State: ENABLED
+        FlexibleTimeWindow:
+          Mode: OFF
+        Target:
+          Arn: arn:aws:states:us-east-1:339712883099:stateMachine:crawlStateMachine
+          #   #Id: crawlStateMachineTarget
+          RoleArn: arn:aws:iam::339712883099:role/service-role/Amazon_EventBridge_Scheduler_SFN_cec437bf0b
+    
     EnDyDBTable:
       Type: AWS::DynamoDB::Table
       Properties:

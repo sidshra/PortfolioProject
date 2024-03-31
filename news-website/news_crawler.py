@@ -7,6 +7,7 @@ import boto3
 
 
 def web_scrape(site_url):
+    
     print("inside web scraper")
     r = requests.get(site_url)
     data = r.text
@@ -50,21 +51,24 @@ def handler(event, context):
 
         page_content = web_scrape("https://www.foxnews.com/")
         my_date = str(datetime.datetime.now().date())
-        
+
         item = {"date": my_date, "section": "Home", "content": page_content}
-        response = {
-            "Payload" : item
-        }
-          
-
-  
-       
-
-        return response
+        print(item)
+        # temp_data = get_date(table)
+        # if temp_data:
+        #     temp_date = 
+        #     print(f"{my_date} already exists!!!")
+        #     temp_data = get_date(table)
+        #     delete_item(table, my_date)
+        #     return item
+        # else:
+        #     print("New item")
+            return item
 
     except Exception as e:
 
         print(e)
+        # logging.error("An error occurred in handler function: %s", e, exc_info=True)
 
 
 def create_item(table,item):
@@ -74,10 +78,10 @@ def create_item(table,item):
     return response
 
 
-def get_item(table,item_id):
-    response = table.get_item(Key={'date' : item_id, 'section' : "Home"})
-    print(f" The item is : {response.get('Item')}")
-    return response.get('Item')
+# def get_date(table):
+#     response = table.get_item(Key={'section' : "Home"})
+#     print(f" The item is : {response.get('Item')}")
+#     return response.get('Item')
 
 
 def delete_item(table, item_id):
