@@ -53,17 +53,9 @@ def handler(event, context):
         my_date = str(datetime.datetime.now().date())
 
         item = {"date": my_date, "section": "Home", "content": page_content}
-        print(item)
-        # temp_data = get_date(table)
-        # if temp_data:
-        #     temp_date = 
-        #     print(f"{my_date} already exists!!!")
-        #     temp_data = get_date(table)
-        #     delete_item(table, my_date)
-        #     return item
-        # else:
-        #     print("New item")
-            return item
+        
+   
+        return item
 
     except Exception as e:
 
@@ -78,13 +70,11 @@ def create_item(table,item):
     return response
 
 
-# def get_date(table):
-#     response = table.get_item(Key={'section' : "Home"})
-#     print(f" The item is : {response.get('Item')}")
-#     return response.get('Item')
+
 
 
 def delete_item(table, item_id):
     response = table.delete_item(Key={"date": item_id, "section": "Home"})
     print(response)
+    print("Deleting")
     return response

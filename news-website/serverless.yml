@@ -19,14 +19,19 @@ provider:
         - Effect: Allow
           Action:
             - states:StartExecution
-            #- lambda:InvokeFunction
           Resource:
-            - "*"  
+            - arn:aws:states:us-east-1:339712883099:stateMachine:crawlStateMachine 
+        - Effect: Allow
+          Action:
+            - lambda:InvokeFunction
+          Resource:
+            - arn:aws:lambda:us-east-1:339712883099:function:get_item    
         - Effect: Allow
           Action:
             - dynamodb:PutItem
             - dynamodb:GetItem
             - dynamodb:DeleteItem
+            - dynamodb:Scan
           Resource: 
             - "arn:aws:dynamodb:*:*:table/EnDyDBTable"
 
@@ -41,23 +46,26 @@ functions:
     handler: news_crawler.handler
     name: news_crawler
     timeout: 30
-    # events:
-    #   - schedule: rate(99 minutes)
-    #   #cron(10 18 * * ? *)
-    #   #rate(50 minutes)
 
-  get_item:
-    handler: get_item.handler
-    name: get_item
-    events:
-      - http: 
-          method: GET 
-          path: get_item  
+  check_item:
+    name: check_item
+    handler: check_item.handler
+    timeout: 30
 
   create_item:
     name: create_item
     handler: create_item.handler
-    timeout: 30
+    timeout: 30    
+    
+  get_item:
+    handler: get_item.handler
+    name: get_item
+    events:
+      - httpApi: 
+          method: GET 
+          path: /news  
+
+  
 
 stepFunctions:
   stateMachines:
@@ -69,25 +77,28 @@ stepFunctions:
           news_crawler:
             Type: Task
             Resource: arn:aws:lambda:us-east-1:339712883099:function:news_crawler
-            Next: create_item
+            Next: check_item
    
+          check_item:
+            Type: Task
+            Resource: arn:aws:lambda:us-east-1:339712883099:function:check_item        
+            Next: create_item 
+         
           create_item:
             Type: Task
             Resource: arn:aws:lambda:us-east-1:339712883099:function:create_item        
-            End: true 
-         
+            End: true
 resources:
   Resources:
     MyStepFuncSchedRule:
       Type: AWS::Scheduler::Schedule
       Properties:
-        ScheduleExpression: cron(0 18 * * ? *)
+        ScheduleExpression: cron(0 17 * * ? *)
         State: ENABLED
         FlexibleTimeWindow:
           Mode: OFF
         Target:
           Arn: arn:aws:states:us-east-1:339712883099:stateMachine:crawlStateMachine
-          #   #Id: crawlStateMachineTarget
           RoleArn: arn:aws:iam::339712883099:role/service-role/Amazon_EventBridge_Scheduler_SFN_cec437bf0b
     
     EnDyDBTable:
@@ -112,8 +123,8 @@ resources:
 
 plugins:
   - serverless-python-requirements
-  
   - serverless-step-functions
-custom:
-  pythonRequirements:
-    dockerizePip: true  
+
+# custom:
+#   pythonRequirements:
+#     dockerizePip: true  
