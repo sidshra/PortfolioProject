@@ -36,11 +36,9 @@ function App() {
             <div key={index} className="content-item">
               {/* Render image */}
               <img src={item[0]} alt={`Content Image ${index}`} className="content-image" />
-              {/* Render headline */}
-              <h2 className="content-headline">{item[1]}</h2>
-              {/* Render web link */}
+              {/* Render headline with link */}
               <a href={item[2]} target='_blank' rel='noopener noreferrer'>
-                Visit Website
+                <h2 className="content-headline">{item[1]}</h2>
               </a>
             </div>
           ))}
