@@ -27,16 +27,17 @@ function App() {
 
   return (
     <div className='App'>
-      <h1>Website content</h1>
-      {/* Render content conditionally */}
+      <div className="web-name"><h1>Dannemora Times</h1></div>
+      <span><span>Home</span><span>Technology</span></span>
+
       {content !== null ? (
         <div className="content-container">
-          {/* Iterate over each item in the nested list */}
+          
           {content.map((item, index) => (
             <div key={index} className="content-item">
-              {/* Render image */}
+              
               <img src={item[0]} alt={`Content Image ${index}`} className="content-image" />
-              {/* Render headline with link */}
+              
               <a href={item[2]} target='_blank' rel='noopener noreferrer'>
                 <h2 className="content-headline">{item[1]}</h2>
               </a>
