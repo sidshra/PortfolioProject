@@ -1,0 +1,20 @@
+.content-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.content-item {
+  flex: 1 1 calc(33.33% - 20px);
+  /* Adjust this value for spacing */
+  margin: 10px;
+  /* Adjust this value for spacing */
+}
+
+.content-image {
+  width: 100%;
+  height: auto;
+}
+
+.content-headline {
+  text-align: center;
+}
