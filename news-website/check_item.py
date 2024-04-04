@@ -28,8 +28,15 @@ def handler(event, context):
 
 
 def get_date(table):
-    
+
     response = table.scan()
     print(f"the response is {response}")
     print(f" The item is : {response['Items']}")
     return response['Items']    
+
+
+def delete_item(table, item_id):
+    response = table.delete_item(Key={"date": item_id, "section": "Home"})
+    print(response)
+    print("Deleting")
+    return response

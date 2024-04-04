@@ -36,7 +36,7 @@ def web_scrape(site_url):
         )
         image_data.append([image_src, headline, link_href])
         no_of_lines += 1
-        if no_of_lines > 10:
+        if no_of_lines > 11:
             break
     print(image_data)
     json_image_data = json.dumps(image_data)
@@ -63,18 +63,5 @@ def handler(event, context):
         # logging.error("An error occurred in handler function: %s", e, exc_info=True)
 
 
-def create_item(table,item):
-           
-    response = table.put_item(Item=item)
-    print(response)
-    return response
 
 
-
-
-
-def delete_item(table, item_id):
-    response = table.delete_item(Key={"date": item_id, "section": "Home"})
-    print(response)
-    print("Deleting")
-    return response

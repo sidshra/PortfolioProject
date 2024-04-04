@@ -5,7 +5,6 @@ frameworkVersion: '3'
 provider:
   name: aws
   runtime: python3.9
-  lambdaHashingVersion: 20201221
   region: us-east-1
 
   iam:
@@ -61,11 +60,10 @@ functions:
     handler: get_item.handler
     name: get_item
     events:
-      - httpApi: 
+      - http: 
           method: GET 
-          path: /news  
-
-  
+          path: /
+         
 
 stepFunctions:
   stateMachines:
@@ -93,7 +91,7 @@ resources:
     MyStepFuncSchedRule:
       Type: AWS::Scheduler::Schedule
       Properties:
-        ScheduleExpression: cron(0 17 * * ? *)
+        ScheduleExpression: rate(670 minutes) #cron(0 17 * * ? *)
         State: ENABLED
         FlexibleTimeWindow:
           Mode: OFF

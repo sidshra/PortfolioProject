@@ -8,8 +8,19 @@ def handler(event, context):
         table = dynamodb.Table("EnDyDBTable")
         my_date = str(datetime.datetime.now().date())
         print(my_date)
-        response = table.get_item(Key={"date": my_date, "section": "Home"})
-        print(f" The item in API Gateway : {response.get('Item')}")
-        return response.get('Item')
+        temp_data = get_date(table)
+        if temp_data:
+            for item_val in temp_data:
+                response = item_val
+        else:
+            print("Table is empty")
+        
+        print(f" The item in API Gateway : {response}")
+        return response
     except Exception as e:
         print(e)
+
+
+def get_date(table):
+    response = table.scan()
+    return response["Items"]
